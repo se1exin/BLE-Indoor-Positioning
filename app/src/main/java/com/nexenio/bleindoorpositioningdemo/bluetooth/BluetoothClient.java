@@ -5,18 +5,23 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.ParcelUuid;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.nexenio.bleindoorpositioning.ble.advertising.AdvertisingPacket;
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.bleindoorpositioning.ble.beacon.BeaconManager;
+import com.nexenio.bleindoorpositioning.ble.beacon.Eddystone;
 import com.nexenio.bleindoorpositioning.ble.beacon.IBeacon;
 import com.nexenio.bleindoorpositioning.location.Location;
+import com.nexenio.bleindoorpositioning.location.provider.EddystoneLocationProvider;
 import com.nexenio.bleindoorpositioning.location.provider.IBeaconLocationProvider;
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.scan.ScanResult;
 import com.polidea.rxandroidble.scan.ScanSettings;
+
+import java.util.Arrays;
 
 import rx.Observer;
 import rx.Subscription;
@@ -120,17 +125,90 @@ public class BluetoothClient {
         activity.startActivityForResult(enableBtIntent, REQUEST_CODE_ENABLE_BLUETOOTH);
     }
 
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
     private void processScanResult(@NonNull ScanResult scanResult) {
+        String tileUUIDUnPaired = "0000feec-0000-1000-8000-00805f9b34fb";
+        String tileUUIDPaired = "0000feed-0000-1000-8000-00805f9b34fb";
+        // TILE 1: C5:B5:FE:7D:6C:4D
+        //  UUID: 0000feec-0000-1000-8000-00805f9b34fb
+        //  UUID: 0000feed-0000-1000-8000-00805f9b34fb
+
+        // TILE 2: C2:D8:B7:E9:53:7F
+        //  UUID: 0000feec-0000-1000-8000-00805f9b34fb
+
+        // TILE 3: E4:E9:DD:55:3A:91
+
+        // TILE 4: F4:16:7F:AE:44:42
+
+        String uuid = "";
         String macAddress = scanResult.getBleDevice().getMacAddress();
+        String name = scanResult.getBleDevice().getName();
         byte[] data = scanResult.getScanRecord().getBytes();
+
         AdvertisingPacket advertisingPacket = BeaconManager.processAdvertisingData(macAddress, data, scanResult.getRssi());
 
         if (advertisingPacket != null) {
+            Log.d("TESTTEST", "FOUND: " + name + ": " + macAddress + ": " + uuid + " RSSI: " + scanResult.getRssi() + " TX: " + scanResult.getScanRecord().getTxPowerLevel());
             Beacon beacon = BeaconManager.getBeacon(macAddress, advertisingPacket.getBeaconClass());
             if (beacon instanceof IBeacon && !beacon.hasLocation()) {
                 beacon.setLocationProvider(createDebuggingLocationProvider((IBeacon) beacon));
             }
+
+            if (beacon instanceof Eddystone && !beacon.hasLocation()) {
+                beacon.setLocationProvider(createDebuggingTileLocationProvider((Eddystone) beacon));
+            }
         }
+    }
+
+    private static EddystoneLocationProvider<Eddystone> createDebuggingTileLocationProvider(Eddystone beacon) {
+        final Location beaconLocation = new Location();
+
+        // Tile 1
+        if (beacon.getMacAddress().equals("C5:B5:FE:7D:6C:4D")) {
+            beaconLocation.setLatitude(-33.867364);
+            beaconLocation.setLongitude(151.189279);
+            beaconLocation.setAltitude(10);
+        }
+
+        // Tile 2
+        if (beacon.getMacAddress().equals("C2:D8:B7:E9:53:7F")) {
+            beaconLocation.setLatitude(-33.867330);
+            beaconLocation.setLongitude(151.189364);
+            beaconLocation.setAltitude(10);
+        }
+
+        // Tile 3
+        if (beacon.getMacAddress().equals("E4:E9:DD:55:3A:91")) {
+            beaconLocation.setLatitude(-33.867270);
+            beaconLocation.setLongitude(151.189317);
+            beaconLocation.setAltitude(10);
+        }
+
+        // Tile 4
+        if (beacon.getMacAddress().equals("F4:16:7F:AE:44:42")) {
+            beaconLocation.setLatitude(-33.867284);
+            beaconLocation.setLongitude(151.189219);
+            beaconLocation.setAltitude(10);
+        }
+
+
+        return new EddystoneLocationProvider<Eddystone>(beacon) {
+            @Override
+            public void updateLocation() {
+                this.location = beaconLocation;
+            }
+        };
     }
 
     private static IBeaconLocationProvider<IBeacon> createDebuggingLocationProvider(IBeacon iBeacon) {

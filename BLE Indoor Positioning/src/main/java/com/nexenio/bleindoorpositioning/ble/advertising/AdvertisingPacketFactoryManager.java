@@ -20,6 +20,7 @@ public class AdvertisingPacketFactoryManager {
     public AdvertisingPacketFactoryManager() {
         advertisingPacketFactories.add(new EddystoneAdvertisingPacketFactory());
         advertisingPacketFactories.add(new IBeaconAdvertisingPacketFactory());
+        // advertisingPacketFactories.add(new TileAdvertisingPacketFactory());
     }
 
     public AdvertisingPacket createAdvertisingPacket(byte[] advertisingData) {

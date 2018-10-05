@@ -20,6 +20,9 @@ public class IBeaconFilter<B extends IBeacon> extends GenericBeaconFilter<B> {
 
     @Override
     public boolean matches(B beacon) {
+        if (beacon == null) {
+            return false;
+        }
         if (!super.matches(beacon)) {
             return false;
         }

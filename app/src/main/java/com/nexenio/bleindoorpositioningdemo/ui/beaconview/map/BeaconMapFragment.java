@@ -43,7 +43,7 @@ public class BeaconMapFragment extends BeaconViewFragment {
                 return false;
             }
         };
-        beaconFilters.add(uuidFilter);
+        // beaconFilters.add(uuidFilter);
     }
 
     @Override
