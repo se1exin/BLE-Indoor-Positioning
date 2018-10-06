@@ -42,7 +42,8 @@ public class BeaconRadarFragment extends BeaconViewFragment {
         IBeaconFilter uuidFilter = new IBeaconFilter() {
 
             private UUID legacyUuid = UUID.fromString("acfd065e-c3c0-11e3-9bbe-1a514932ac01");
-            private UUID indoorPositioningUuid = UUID.fromString("03253fdd-55cb-44c2-a1eb-80c8355f8291");
+            // private UUID indoorPositioningUuid = UUID.fromString("03253fdd-55cb-44c2-a1eb-80c8355f8291");
+            private UUID indoorPositioningUuid = UUID.fromString("f7826da6-4fa2-4e98-8024-bc5b71e0893e");
 
             @Override
             public boolean matches(IBeacon beacon) {

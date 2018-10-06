@@ -23,7 +23,7 @@ public class BeaconFactory {
 
     public BeaconFactory() {
         beaconClasses.put(IBeaconAdvertisingPacket.class, IBeacon.class);
-        beaconClasses.put(EddystoneAdvertisingPacket.class, Eddystone.class);
+        // beaconClasses.put(EddystoneAdvertisingPacket.class, Eddystone.class);
     }
 
     /**
